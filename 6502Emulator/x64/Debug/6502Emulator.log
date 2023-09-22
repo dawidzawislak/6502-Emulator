@@ -1,2 +1,4 @@
 ﻿  Emulator6502.cpp
+C:\dev\Application\6502Emulator\src\Emulator6502.cpp(13,25): warning C4305: '=': truncation from 'int' to 'uint8_t'
+C:\dev\Application\6502Emulator\src\Emulator6502.cpp(13,19): warning C4309: '=': truncation of constant value
   6502Emulator.vcxproj -> C:\dev\Application\x64\Debug\6502Emulator.lib
