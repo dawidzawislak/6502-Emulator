@@ -9,7 +9,11 @@ enum class Instructions
 	LDA_IM = 0xA9,
 	LDA_ZP = 0xA5,
 	LDA_ZPX = 0xB5,
-	LDA_ABS = 0xAD
+	LDA_ABS = 0xAD,
+	LDA_ABSX = 0xBD,
+	LDA_ABSY = 0xB9,
+	LDA_INDX = 0xA1,
+	LDA_INDY = 0xB1
 };
 
 class Emulator6502
@@ -32,6 +36,12 @@ public:
 	int Execute(int cycles);
 
 	uint8_t ReadAccumulatorValue() const;
+	uint8_t ReadXRegisterValue() const;
+	uint8_t ReadYRegisterValue() const;
+	uint8_t ReadStackPointer() const;
+	uint16_t ReadProgramCounter() const;
+	uint8_t ReadProcessorStatus() const;
+	
 
 private:
 	const uint8_t& FetchByte(int& cycles);
@@ -42,6 +52,10 @@ private:
 	void LDAZeroPage(int& cycles);
 	void LDAZeroPageX(int& cycles);
 	void LDAAbsolute(int& cycles);
+	void LDAAbsoluteX(int& cycles);
+	void LDAAbsoluteY(int& cycles);
+	void LDAIndirectX(int& cycles);
+	void LDAIndirectY(int& cycles);
 
 	void SetLDAFlags();
 
