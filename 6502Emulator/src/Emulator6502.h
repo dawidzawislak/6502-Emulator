@@ -45,6 +45,20 @@ enum class Instructions
 	STY_ZP = 0x84,
 	STY_ZPX = 0x94,
 	STY_ABS = 0x8C,
+
+	// Register transfer
+	TAX = 0xAA,
+	TAY = 0xA8,
+	TXA = 0x8A,
+	TYA = 0x98,
+
+	// Stack operations
+	TSX = 0xBA,
+	TXS = 0x9A,
+	PHA = 0x48,
+	PHP = 0x08,
+	PLA = 0x68,
+	PLP = 0x28
 };
 
 class Emulator6502
@@ -102,9 +116,7 @@ private:
 	void LDYAbsolute();
 	void LDYAbsoluteX();
 
-	void SetLDAFlags();
-	void SetLDXFlags();
-	void SetLDYFlags();
+	void SetNZFlags(uint8_t value);
 
 	// Store Operations
 	void STAZeroPage();
@@ -122,6 +134,20 @@ private:
 	void STYZeroPage();
 	void STYZeroPageX();
 	void STYAbsolute();
+
+	// Register Transfers
+	void TAX();
+	void TAY();
+	void TXA();
+	void TYA();
+
+	// Stack operations
+	void TSX();
+	void TXS();
+	void PHA();
+	void PHP();
+	void PLA();
+	void PLP();
 
 	uint16_t GetZeroPageAddress();
 	uint16_t GetZeroPageXAddress();

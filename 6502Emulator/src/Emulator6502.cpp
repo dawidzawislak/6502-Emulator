@@ -68,6 +68,20 @@ int Emulator6502::Execute(int cycles)
 		case (int)Instructions::STY_ZPX:	STYZeroPageX();	break;
 		case (int)Instructions::STY_ABS:	STYAbsolute();	break;
 
+		// Register Transfers
+		case (int)Instructions::TAX:		TAX();	break;
+		case (int)Instructions::TAY:		TAY();	break;
+		case (int)Instructions::TXA:		TXA();	break;
+		case (int)Instructions::TYA:		TYA();	break;
+
+		// Stack operations
+		case (int)Instructions::TSX:		TSX();	break;
+		case (int)Instructions::TXS:		TXS();	break;
+		case (int)Instructions::PHA:		PHA();	break;
+		case (int)Instructions::PHP:		PHP();	break;
+		case (int)Instructions::PLA:		PLA();	break;
+		case (int)Instructions::PLP:		PLP();	break;
+
 		default: std::cout << "Invalid instruction!\n";			break;
 		}
 	}
@@ -125,144 +139,130 @@ const uint8_t& Emulator6502::ReadByte(uint16_t address)
 void Emulator6502::LDAImmediate()
 {
 	m_Accumulator = FetchByte();
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAZeroPage()
 {
 	uint16_t addr = GetZeroPageAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAZeroPageX()
 {
 	uint16_t addr = GetZeroPageXAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAAbsolute()
 {
 	uint16_t addr = GetAbsoluteAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAAbsoluteX()
 {
 	uint16_t addr = GetAbsoluteXAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAAbsoluteY()
 {
 	uint16_t addr = GetAbsoluteYAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAIndirectX()
 {
 	uint16_t addr = GetIndirectXAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDAIndirectY()
 {
 	uint16_t addr = GetIndirectYAddress();
 	m_Accumulator = ReadByte(addr);
-	SetLDAFlags();
+	SetNZFlags(m_Accumulator);
 }
 
 void Emulator6502::LDXImmediate()
 {
 	m_IndexRegisterX = FetchByte();
-	SetLDXFlags();
+	SetNZFlags(m_IndexRegisterX);
 }
 
 void Emulator6502::LDXZeroPage()
 {
 	uint16_t addr = GetZeroPageAddress();
 	m_IndexRegisterX = ReadByte(addr);
-	SetLDXFlags();
+	SetNZFlags(m_IndexRegisterX);
 }
 
 void Emulator6502::LDXZeroPageY()
 {
 	uint16_t addr = GetZeroPageYAddress();
 	m_IndexRegisterX = ReadByte(addr);
-	SetLDXFlags();
+	SetNZFlags(m_IndexRegisterX);
 }
 
 void Emulator6502::LDXAbsolute()
 {
 	uint16_t addr = GetAbsoluteAddress();
 	m_IndexRegisterX = ReadByte(addr);
-	SetLDXFlags();
+	SetNZFlags(m_IndexRegisterX);
 }
 
 void Emulator6502::LDXAbsoluteY()
 {
 	uint16_t addr = GetAbsoluteYAddress();
 	m_IndexRegisterX = ReadByte(addr);
-	SetLDXFlags();
+	SetNZFlags(m_IndexRegisterX);
 }
 
 void Emulator6502::LDYImmediate()
 {
 	m_IndexRegisterY = FetchByte();
-	SetLDYFlags();
+	SetNZFlags(m_IndexRegisterY);
 }
 
 void Emulator6502::LDYZeroPage()
 {
 	uint16_t addr = GetZeroPageAddress();
 	m_IndexRegisterY = ReadByte(addr);
-	SetLDYFlags();
+	SetNZFlags(m_IndexRegisterY);
 }
 
 void Emulator6502::LDYZeroPageX()
 {
 	uint16_t addr = GetZeroPageXAddress();
 	m_IndexRegisterY = ReadByte(addr);
-	SetLDYFlags();
+	SetNZFlags(m_IndexRegisterY);
 }
 
 void Emulator6502::LDYAbsolute()
 {
 	uint16_t addr = GetAbsoluteAddress();
 	m_IndexRegisterY = ReadByte(addr);
-	SetLDYFlags();
+	SetNZFlags(m_IndexRegisterY);
 }
 
 void Emulator6502::LDYAbsoluteX()
 {
 	uint16_t addr = GetAbsoluteXAddress();
 	m_IndexRegisterY = ReadByte(addr);
-	SetLDYFlags();
+	SetNZFlags(m_IndexRegisterY);
 }
 
-// ----------------------------------------------------
-
-void Emulator6502::SetLDAFlags()
+void Emulator6502::SetNZFlags(uint8_t value)
 {
-	SetZeroFlag(m_Accumulator == 0);
-	SetNegativeFlag((m_Accumulator & 0b1000000) > 0);
-}
-
-void Emulator6502::SetLDXFlags()
-{
-	SetZeroFlag(m_IndexRegisterX == 0);
-	SetNegativeFlag((m_IndexRegisterX & 0b1000000) > 0);
-}
-
-void Emulator6502::SetLDYFlags()
-{
-	SetZeroFlag(m_IndexRegisterY == 0);
-	SetNegativeFlag((m_IndexRegisterY & 0b1000000) > 0);
+	SetZeroFlag(value == 0);
+	SetNegativeFlag((value & 0b1000000) > 0);
 }
 
 // -- Storing -----------------------------------------
@@ -356,6 +356,80 @@ void Emulator6502::STYAbsolute()
 	uint32_t addr = GetAbsoluteAddress();
 	m_Memory[addr] = m_IndexRegisterY;
 	m_cyclesElapsed++;
+}
+
+void Emulator6502::TAX()
+{
+	m_IndexRegisterX = m_Accumulator;
+	m_cyclesElapsed++;
+	SetNZFlags(m_IndexRegisterX);
+}
+
+void Emulator6502::TAY()
+{
+	m_IndexRegisterY = m_Accumulator;
+	m_cyclesElapsed++;
+	SetNZFlags(m_IndexRegisterY);
+}
+
+void Emulator6502::TXA()
+{
+	m_Accumulator = m_IndexRegisterX;
+	m_cyclesElapsed++;
+	SetNZFlags(m_Accumulator);
+}
+
+void Emulator6502::TYA()
+{
+	m_Accumulator = m_IndexRegisterY;
+	m_cyclesElapsed++;
+	SetNZFlags(m_Accumulator);
+}
+
+void Emulator6502::TSX()
+{
+	m_IndexRegisterX = m_StackPointer;
+	m_cyclesElapsed++;
+	SetNZFlags(m_IndexRegisterX);
+}
+
+void Emulator6502::TXS()
+{
+	m_StackPointer = m_IndexRegisterX;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::PHA()
+{
+	m_Memory[m_StackPointer] = m_Accumulator;
+	m_cyclesElapsed++;
+	m_StackPointer--;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::PHP()
+{
+	m_Memory[m_StackPointer] = m_ProcessorStatus;
+	m_cyclesElapsed++;
+	m_StackPointer--;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::PLA()
+{
+	m_Accumulator = m_Memory[m_StackPointer];
+	m_cyclesElapsed++;
+	m_StackPointer++;
+	m_cyclesElapsed++;
+	SetNZFlags(m_Accumulator);
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::PLP()
+{
+	m_ProcessorStatus = m_Memory[m_StackPointer];
+	m_StackPointer++;
+	m_cyclesElapsed += 3;
 }
 
 uint16_t Emulator6502::GetZeroPageAddress()
