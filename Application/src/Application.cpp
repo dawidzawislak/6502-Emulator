@@ -9,11 +9,11 @@ int main()
 	memory[0xFFFC] = (uint8_t)Emulator::Instructions::LDA_ABS;
 	memory[0xFFFD] = 0xAA;
 	memory[0xFFFE] = 0xAA;
-	memory[0xAAAA] = 0xFF;
+	memory[0xAAAA] = 0b1000000;
 
 	Emulator::Emulator6502 em6502(memory);
 	em6502.Reset();
-	int additionalCycles = -em6502.Execute(4);
+	int additionalCycles = em6502.Execute(4);
 
 	std::cout << "A: 0x" << std::hex << (int)em6502.ReadAccumulatorValue() << "\n";
 	std::cout << "X: 0x" << std::hex << (int)em6502.ReadXRegisterValue() << "\n";
