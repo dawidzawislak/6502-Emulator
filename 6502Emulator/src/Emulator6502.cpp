@@ -49,6 +49,25 @@ int Emulator6502::Execute(int cycles)
 		case (int)Instructions::LDY_ABS:	LDYAbsolute();	break;
 		case (int)Instructions::LDY_ABSX:	LDYAbsoluteX();	break;
 
+		// STA
+		case (int)Instructions::STA_ZP:		STAZeroPage();	break;
+		case (int)Instructions::STA_ZPX:	STAZeroPageX();	break;
+		case (int)Instructions::STA_ABS:	STAAbsolute();	break;
+		case (int)Instructions::STA_ABSX:	STAAbsoluteX();	break;
+		case (int)Instructions::STA_ABSY:	STAAbsoluteY();	break;
+		case (int)Instructions::STA_INDX:	STAIndirectX();	break;
+		case (int)Instructions::STA_INDY:	STAIndirectY();	break;
+
+		// STX
+		case (int)Instructions::STX_ZP:		STXZeroPage();	break;
+		case (int)Instructions::STX_ZPY:	STXZeroPageY();	break;
+		case (int)Instructions::STX_ABS:	STXAbsolute();	break;
+
+		// STY
+		case (int)Instructions::STY_ZP:		STYZeroPage();	break;
+		case (int)Instructions::STY_ZPX:	STYZeroPageX();	break;
+		case (int)Instructions::STY_ABS:	STYAbsolute();	break;
+
 		default: std::cout << "Invalid instruction!\n";			break;
 		}
 	}
@@ -246,6 +265,99 @@ void Emulator6502::SetLDYFlags()
 	SetNegativeFlag((m_IndexRegisterY & 0b1000000) > 0);
 }
 
+// -- Storing -----------------------------------------
+
+void Emulator6502::STAZeroPage()
+{
+	uint32_t addr = GetZeroPageAddress();
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAZeroPageX()
+{
+	uint32_t addr = GetZeroPageXAddress();
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAAbsolute()
+{
+	uint32_t addr = GetAbsoluteAddress();
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAAbsoluteX()
+{
+	uint32_t addr = GetAbsoluteXAddress(false);
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAAbsoluteY()
+{
+	uint32_t addr = GetAbsoluteYAddress(false);
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAIndirectX()
+{
+	uint32_t addr = GetIndirectXAddress();
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STAIndirectY()
+{
+	uint32_t addr = GetIndirectYAddress(false);
+	m_Memory[addr] = m_Accumulator;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STXZeroPage()
+{
+	uint32_t addr = GetZeroPageAddress();
+	m_Memory[addr] = m_IndexRegisterX;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STXZeroPageY()
+{
+	uint32_t addr = GetZeroPageYAddress();
+	m_Memory[addr] = m_IndexRegisterX;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STXAbsolute()
+{
+	uint32_t addr = GetAbsoluteAddress();
+	m_Memory[addr] = m_IndexRegisterX;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STYZeroPage()
+{
+	uint32_t addr = GetZeroPageAddress();
+	m_Memory[addr] = m_IndexRegisterY;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STYZeroPageX()
+{
+	uint32_t addr = GetZeroPageXAddress();
+	m_Memory[addr] = m_IndexRegisterY;
+	m_cyclesElapsed++;
+}
+
+void Emulator6502::STYAbsolute()
+{
+	uint32_t addr = GetAbsoluteAddress();
+	m_Memory[addr] = m_IndexRegisterY;
+	m_cyclesElapsed++;
+}
+
 uint16_t Emulator6502::GetZeroPageAddress()
 {
 	return FetchByte();
@@ -275,23 +387,23 @@ uint16_t Emulator6502::GetAbsoluteAddress()
 	return addr;
 }
 
-uint16_t Emulator6502::GetAbsoluteXAddress()
+uint16_t Emulator6502::GetAbsoluteXAddress(bool addCycle)
 {
 	uint16_t addr = FetchByte();
 	addr = (addr << 8) | FetchByte();
 	addr += m_IndexRegisterX;
-	if ((addr & 0xFF) < m_IndexRegisterX) // this is only true when the above addition "wraps around", or carries
+	if ((addr & 0xFF) < m_IndexRegisterX && addCycle) // this is only true when the above addition "wraps around", or carries
 		m_cyclesElapsed++;
 
 	return addr;
 }
 
-uint16_t Emulator6502::GetAbsoluteYAddress()
+uint16_t Emulator6502::GetAbsoluteYAddress(bool addCycle)
 {
 	uint16_t addr = FetchByte();
 	addr = (addr << 8) | FetchByte();
 	addr += m_IndexRegisterY;
-	if ((addr & 0xFF) < m_IndexRegisterY) // this is only true when the above addition "wraps around", or carries
+	if ((addr & 0xFF) < m_IndexRegisterY && addCycle) // this is only true when the above addition "wraps around", or carries
 		m_cyclesElapsed++;
 
 	return addr;
@@ -307,12 +419,12 @@ uint16_t Emulator6502::GetIndirectXAddress()
 	return addr;
 }
 
-uint16_t Emulator6502::GetIndirectYAddress()
+uint16_t Emulator6502::GetIndirectYAddress(bool addCycle)
 {
 	uint16_t zpAddr = FetchByte();
 	uint16_t addr = (ReadByte(zpAddr + 1) << 8) | ReadByte(zpAddr);
 	addr += m_IndexRegisterY;
-	if ((addr & 0xFF) < m_IndexRegisterY) // this is only true when the above addition "wraps around", or carries
+	if ((addr & 0xFF) < m_IndexRegisterY && addCycle) // this is only true when the above addition "wraps around", or carries
 		m_cyclesElapsed++;
 
 	return addr;
